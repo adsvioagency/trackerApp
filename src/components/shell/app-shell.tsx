@@ -7,10 +7,12 @@ import { WorkspaceSwitcher } from "./workspace-switcher";
 import { MobileTabs, Sidebar } from "./nav";
 import { AddMenu } from "./add-menu";
 import { signOutAction } from "@/app/(app)/actions";
+import { Hotkeys } from "./hotkeys";
 
 export function AppShell({ view, email, isDemo, children }: { view: WorkspaceView; email: string; isDemo: boolean; children: React.ReactNode }) {
   return (
     <div className="flex min-h-dvh">
+      <Hotkeys />
       {/* Desktop sidebar */}
       <aside className="sticky top-0 hidden h-dvh w-[240px] shrink-0 flex-col border-r border-rule bg-paper-deep/60 px-3 py-4 md:flex">
         <div className="mb-4 flex items-center justify-between px-2">
