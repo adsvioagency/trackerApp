@@ -164,6 +164,8 @@ export async function requireUser(): Promise<CurrentUser> {
 /** Demo mode: sign in the demo owner directly (no email). */
 export async function signInDemoOwner() {
   if (!env.isDemo) throw new Error("Demo sign-in is only available in demo mode.");
+  const { seedDemoData } = await import("@/lib/demo-seed");
+  await seedDemoData(); // fictional data on first demo sign-in; no-op afterwards
   const user = await ensureUser("demo@example.com");
   await createSession(user.id);
   return user;

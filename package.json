@@ -11,11 +11,11 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "tsx scripts/migrate.ts",
+    "db:migrate": "tsx --conditions=react-server scripts/migrate.ts",
     "db:studio": "drizzle-kit studio",
-    "demo": "cross-env APP_MODE=demo next dev -p 3001",
-    "demo:seed": "tsx scripts/seed-demo.ts",
-    "cron:tick": "tsx scripts/cron-tick.ts",
+    "demo": "APP_MODE=demo next dev -p 3001",
+    "demo:seed": "tsx --conditions=react-server scripts/seed-demo.ts",
+    "cron:tick": "tsx --conditions=react-server scripts/cron-tick.ts",
     "outbox": "tsx scripts/outbox.ts"
   },
   "dependencies": {

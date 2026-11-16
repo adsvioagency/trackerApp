@@ -4,7 +4,8 @@
  *   npm run cron:tick            → sends what is due (respects settings)
  *   npm run cron:tick -- --dry   → preview only
  */
-import "dotenv/config";
+import { config } from "dotenv";
+config({ path: [".env.local", ".env"], quiet: true });
 
 async function main() {
   const dryRun = process.argv.includes("--dry");

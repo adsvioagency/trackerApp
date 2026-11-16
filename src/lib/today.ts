@@ -105,8 +105,13 @@ export async function getToday(ctx: Ctx): Promise<TodayData> {
 
   if (view === "personal" || view === "combined") {
     const availability = await availableAfterCommitments(user.id, "personal", today);
-    const period = (await resolvePeriod(user.id, "personal", { type: "paycheck", date: today })) ?? (await resolvePeriod(user.id, "personal", { type: "month", month: monthKey(today) }));
-    const budget = period ? await getBudgetPlan(user.id, "personal", period) : null;
+    // Prefer the current paycheck plan; fall back to the month plan when no paycheck allocations exist.
+    const paycheck = await resolvePeriod(user.id, "personal", { type: "paycheck", date: today });
+    let budget = paycheck ? await getBudgetPlan(user.id, "personal", paycheck) : null;
+    if (!budget || budget.totals.targetMinor === 0) {
+      const month = await resolvePeriod(user.id, "personal", { type: "month", month: monthKey(today) });
+      budget = month ? await getBudgetPlan(user.id, "personal", month) : budget;
+    }
     const nearLimit = (budget?.lines ?? [])
       .filter((l) => l.availableMinor > 0 && (l.remainingMinor < 0 || l.remainingMinor / l.availableMinor <= 0.15))
       .sort((a, b) => a.remainingMinor - b.remainingMinor)

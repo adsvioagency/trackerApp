@@ -4,7 +4,8 @@
  * With DATABASE_URL set, migrates that Postgres. Without it, migrates the
  * embedded database under ./data (the app also does this at boot).
  */
-import "dotenv/config";
+import { config } from "dotenv";
+config({ path: [".env.local", ".env"], quiet: true });
 import path from "node:path";
 
 async function main() {
