@@ -115,3 +115,13 @@ export function ConfirmButton({ children, confirm, className = "btn btn-danger b
     </button>
   );
 }
+
+/** A form key that changes after each successful action, so uncontrolled inputs reset. */
+export function useResetKey(state: ActionState, onDone?: () => void) {
+  const [key, setKey] = useState(0);
+  useAfterSuccess(state, () => {
+    setKey((k) => k + 1);
+    onDone?.();
+  });
+  return key;
+}
