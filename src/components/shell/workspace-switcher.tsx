@@ -33,8 +33,8 @@ export function WorkspaceSwitcher({ view, full }: { view: WorkspaceView; full?: 
               })
             }
             className={cx(
-              "rounded-lg px-2.5 py-1.5 text-[13px] font-semibold transition-colors",
-              full && "flex-1",
+              "min-w-0 rounded-lg py-1.5 text-[13px] font-semibold transition-colors",
+              full ? "flex-1 px-1" : "px-2.5",
               active && o.value === "business" && "bg-mango-deep text-white",
               active && o.value === "personal" && "bg-teal-deep text-white",
               active && o.value === "combined" && "bg-ink text-paper",

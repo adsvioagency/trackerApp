@@ -98,7 +98,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
 
       <div className="mt-5 grid gap-4 lg:grid-cols-2">
         <Card title="Compared with last month">
-          <table className="table">
+          <div className="table-wrap"><table className="table">
             <thead><tr><th>Category</th><th className="num">{prevMonth}</th><th className="num">{period.month}</th><th className="num">Change</th></tr></thead>
             <tbody>
               {breakdown.rows.slice(0, 10).map((r) => {
@@ -109,7 +109,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
                 );
               })}
             </tbody>
-          </table>
+          </table></div>
         </Card>
         <Card title={ws === "business" ? "Debt" : "Savings and debt progress"}>
           {goals.length + debts.length === 0 ? <EmptyState title="Nothing tracked yet" /> : (

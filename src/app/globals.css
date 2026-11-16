@@ -452,3 +452,14 @@ dialog {
 ::selection {
   background: var(--mango-wash);
 }
+
+/* Grid and flex children may shrink below their content width (prevents sideways scroll on phones). */
+.grid > *,
+.card {
+  min-width: 0;
+}
+/* Wide tables scroll inside their card instead of widening the page. */
+.table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}

@@ -17,7 +17,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: { default: "Personal Assistant System", template: "%s · Assistant" },
+  title: { default: "Personal Assistant System", template: "%s · Personal Assistant" },
   description: "Private assistant for personal finances and Adsvio Agency operations.",
   applicationName: "Adsvio Assistant",
   manifest: "/manifest.webmanifest",

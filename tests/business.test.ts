@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import type { DocLine } from "@/db/schema";
 import { makeUser, account } from "./helpers";
 import { createClient } from "@/lib/business/clients";
 import { createProject, projectFinance, addInstallment, getProject, updateProject } from "@/lib/business/projects";
@@ -79,9 +80,9 @@ describe("documents keep issued values", () => {
     const u = await makeUser();
     const client = await createClient(u.id, { company: "Atelier Fictional", contactName: "Eve", status: "active" });
     const project = await createProject(u.id, { clientId: client.id, name: "Store build", agreedValueMinor: 0, currency: "USD" });
-    const lines = Array.from({ length: 28 }, (_, i) => ({ id: shortId(), kind: "service" as const, title: `Scope item ${i + 1}`, description: "A reasonably long description that explains what is included in this part of the work so the table wraps across pages.", quantity: 1, rateMinor: 100_00, standardRateMinor: 120_00, sort: i }));
-    lines.push({ id: shortId(), kind: "maintenance" as const, title: "Monthly care", description: "Up to 1 hour per month.", quantity: 1, rateMinor: 59_00, standardRateMinor: null, sort: 99 } as (typeof lines)[number]);
-    lines.push({ id: shortId(), kind: "third_party" as const, title: "Domain", quantity: 1, rateMinor: 15_00, standardRateMinor: null, sort: 100 } as (typeof lines)[number]);
+    const lines: DocLine[] = Array.from({ length: 28 }, (_, i) => ({ id: shortId(), kind: "service" as const, title: `Scope item ${i + 1}`, description: "A reasonably long description that explains what is included in this part of the work so the table wraps across pages.", quantity: 1, rateMinor: 100_00, standardRateMinor: 120_00, sort: i }));
+    lines.push({ id: shortId(), kind: "maintenance" as const, title: "Monthly care", description: "Up to 1 hour per month.", quantity: 1, rateMinor: 59_00, standardRateMinor: null, sort: 99 });
+    lines.push({ id: shortId(), kind: "third_party" as const, title: "Domain", quantity: 1, rateMinor: 15_00, standardRateMinor: null, sort: 100 });
     const p = await createProposal(u.id, { clientId: client.id, projectId: project.id, title: "Shopify website", issueDate: "2026-11-01", currency: "USD", lines, projectDiscountMinor: 300_00, installments: [{ id: "a", label: "50% to begin", kind: "deposit", mode: "percent", value: 50 }, { id: "b", label: "50% before launch", kind: "final", mode: "percent", value: 50 }] });
     const before = (await getProposal(u.id, p.id))!;
     expect(before.totals.servicesTotalMinor).toBe(28 * 100_00 - 300_00);

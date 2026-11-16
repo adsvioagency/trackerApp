@@ -76,7 +76,7 @@ export function CashFlowChart({ points, hrefFor }: { points: { month: string; in
         <line x1={pad} x2={W - pad} y1={H} y2={H} stroke="var(--rule)" />
       </svg>
       <div className="muted mt-1 flex gap-3 text-[11px]"><span className="inline-flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-teal" /> income</span><span className="inline-flex items-center gap-1"><span className="inline-block size-2 rounded-sm bg-mango" /> spending</span></div>
-      <table className="table mt-3">
+      <div className="table-wrap mt-3"><table className="table">
         <thead><tr><th>Month</th><th className="num">Income</th><th className="num">Spending</th><th className="num">Net</th></tr></thead>
         <tbody>
           {points.map((p) => (
@@ -88,7 +88,7 @@ export function CashFlowChart({ points, hrefFor }: { points: { month: string; in
             </tr>
           ))}
         </tbody>
-      </table>
+      </table></div>
     </div>
   );
 }

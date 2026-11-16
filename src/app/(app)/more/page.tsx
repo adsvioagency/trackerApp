@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { ChevronRight, LogOut } from "lucide-react";
 import { getCtx } from "@/lib/current";
-import { sidebarSections } from "@/components/shell/nav";
+import { sidebarSections } from "@/components/shell/nav-items";
 import { PageHeader } from "@/components/ui";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { signOutAction } from "../actions";
