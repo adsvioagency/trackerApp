@@ -9,7 +9,8 @@ export type ProjectStatus = Project["status"];
 export type Phase = typeof schema.projectPhases.$inferSelect;
 export type Installment = typeof schema.projectInstallments.$inferSelect;
 
-export const DEFAULT_PHASES = ["Planning", "Waiting for content", "Design", "Development", "Review", "Launch", "Completed"];
+import { DEFAULT_PHASES } from "./phases";
+export { DEFAULT_PHASES };
 
 export const PROJECT_STATUS_LABEL: Record<ProjectStatus, string> = {
   planning: "Planning",

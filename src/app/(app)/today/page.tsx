@@ -43,22 +43,22 @@ export default async function TodayPage() {
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             <Link href="/money/accounts" className="card block p-3.5 hover:bg-surface-2">
               <div className="text-[12px] font-semibold uppercase tracking-[0.06em] text-ink-soft">Recorded spending cash</div>
-              <div className="mt-1 font-display text-[22px] font-extrabold leading-none"><Money minor={data.personal.cash.dopValuedMinor} /></div>
+              <div className="mt-1 font-display text-[19px] font-extrabold leading-none break-words md:text-[23px]"><Money minor={data.personal.cash.dopValuedMinor} /></div>
               <div className="muted mt-1.5 text-[12px]">{data.personal.cash.lastUpdated ? `Updated ${fmtDate(data.personal.cash.lastUpdated, "short")}` : "No entries yet"}{data.personal.cash.unvaluedAccounts.length ? ` · ${data.personal.cash.unvaluedAccounts.length} account(s) not valued in DOP` : ""}</div>
             </Link>
             <Link href="/money#available" className="card block p-3.5 hover:bg-surface-2">
               <div className="text-[12px] font-semibold uppercase tracking-[0.06em] text-ink-soft">Available after commitments</div>
-              <div className={`mt-1 font-display text-[22px] font-extrabold leading-none ${data.personal.availability.availableMinor < 0 ? "text-danger" : ""}`}><Money minor={data.personal.availability.availableMinor} /></div>
+              <div className={`mt-1 font-display text-[19px] font-extrabold leading-none break-words md:text-[23px] ${data.personal.availability.availableMinor < 0 ? "text-danger" : ""}`}><Money minor={data.personal.availability.availableMinor} /></div>
               <div className="muted mt-1.5 text-[12px]">Cash − bills {data.personal.availability.horizonLabel} − reserved</div>
             </Link>
             <Link href="/money/budget" className="card block p-3.5 hover:bg-surface-2">
               <div className="text-[12px] font-semibold uppercase tracking-[0.06em] text-ink-soft">Budget remaining</div>
-              <div className={`mt-1 font-display text-[22px] font-extrabold leading-none ${data.personal.budget && data.personal.budget.totals.remainingMinor < 0 ? "text-danger" : ""}`}>{data.personal.budget ? <Money minor={data.personal.budget.totals.remainingMinor} /> : "—"}</div>
+              <div className={`mt-1 font-display text-[19px] font-extrabold leading-none break-words md:text-[23px] ${data.personal.budget && data.personal.budget.totals.remainingMinor < 0 ? "text-danger" : ""}`}>{data.personal.budget ? <Money minor={data.personal.budget.totals.remainingMinor} /> : "—"}</div>
               <div className="muted mt-1.5 text-[12px]">{data.personal.budget ? `${data.personal.budget.period.type === "paycheck" ? "This paycheck" : "This month"} · spent ${Math.round((data.personal.budget.totals.actualMinor / Math.max(1, data.personal.budget.totals.availableMinor)) * 100)}%` : "No budget set yet"}</div>
             </Link>
             <Link href="/money/bills" className="card block p-3.5 hover:bg-surface-2">
               <div className="text-[12px] font-semibold uppercase tracking-[0.06em] text-ink-soft">Bills before payday</div>
-              <div className="mt-1 font-display text-[22px] font-extrabold leading-none"><Money minor={data.personal.availability.unpaidBillsDopMinor} /></div>
+              <div className="mt-1 font-display text-[19px] font-extrabold leading-none break-words md:text-[23px]"><Money minor={data.personal.availability.unpaidBillsDopMinor} /></div>
               <div className="muted mt-1.5 text-[12px]">{data.personal.availability.unpaidBills.length} unpaid · {data.personal.availability.forecast.paydays[0] ? `next payday ${fmtDate(data.personal.availability.forecast.paydays[0].date, "short")}` : "no payday scheduled"}</div>
             </Link>
           </div>
@@ -83,22 +83,22 @@ export default async function TodayPage() {
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             <Link href="/documents?tab=invoices&status=overdue" className="card block p-3.5 hover:bg-surface-2">
               <div className="text-[12px] font-semibold uppercase tracking-[0.06em] text-ink-soft">Overdue</div>
-              <div className={`mt-1 font-display text-[22px] font-extrabold leading-none ${data.business.receivables.overdueCount ? "text-danger" : ""}`}>{Object.entries(data.business.receivables.overdueByCurrency).map(([c, v]) => <div key={c}><Money minor={v} currency={c} /></div>)}{!data.business.receivables.overdueCount && <Money minor={0} currency="USD" />}</div>
+              <div className={`mt-1 font-display text-[19px] font-extrabold leading-none break-words md:text-[23px] ${data.business.receivables.overdueCount ? "text-danger" : ""}`}>{Object.entries(data.business.receivables.overdueByCurrency).map(([c, v]) => <div key={c}><Money minor={v} currency={c} /></div>)}{!data.business.receivables.overdueCount && <Money minor={0} currency="USD" />}</div>
               <div className="muted mt-1.5 text-[12px]">{data.business.receivables.overdueCount} invoice(s)</div>
             </Link>
             <Link href="/documents?tab=invoices&status=issued" className="card block p-3.5 hover:bg-surface-2">
               <div className="text-[12px] font-semibold uppercase tracking-[0.06em] text-ink-soft">Outstanding</div>
-              <div className="mt-1 font-display text-[22px] font-extrabold leading-none">{Object.entries(data.business.receivables.outstandingByCurrency).map(([c, v]) => <div key={c}><Money minor={v} currency={c} /></div>)}{!Object.keys(data.business.receivables.outstandingByCurrency).length && <Money minor={0} currency="USD" />}</div>
+              <div className="mt-1 font-display text-[19px] font-extrabold leading-none break-words md:text-[23px]">{Object.entries(data.business.receivables.outstandingByCurrency).map(([c, v]) => <div key={c}><Money minor={v} currency={c} /></div>)}{!Object.keys(data.business.receivables.outstandingByCurrency).length && <Money minor={0} currency="USD" />}</div>
               <div className="muted mt-1.5 text-[12px]">Issued, not yet received</div>
             </Link>
             <Link href="/money/accounts" className="card block p-3.5 hover:bg-surface-2">
               <div className="text-[12px] font-semibold uppercase tracking-[0.06em] text-ink-soft">Business cash</div>
-              <div className="mt-1 font-display text-[22px] font-extrabold leading-none">{Object.entries(data.business.cash.byCurrency).map(([c, v]) => <div key={c}><Money minor={v} currency={c} /></div>)}{!Object.keys(data.business.cash.byCurrency).length && "—"}</div>
+              <div className="mt-1 font-display text-[19px] font-extrabold leading-none break-words md:text-[23px]">{Object.entries(data.business.cash.byCurrency).map(([c, v]) => <div key={c}><Money minor={v} currency={c} /></div>)}{!Object.keys(data.business.cash.byCurrency).length && "—"}</div>
               <div className="muted mt-1.5 text-[12px]">{data.business.cash.lastUpdated ? `Updated ${fmtDate(data.business.cash.lastUpdated, "short")}` : "No entries yet"}</div>
             </Link>
             <Link href="/money/reports" className="card block p-3.5 hover:bg-surface-2">
               <div className="text-[12px] font-semibold uppercase tracking-[0.06em] text-ink-soft">Collected this month</div>
-              <div className="mt-1 font-display text-[22px] font-extrabold leading-none"><Money minor={data.business.collectedMonthDop} /></div>
+              <div className="mt-1 font-display text-[19px] font-extrabold leading-none break-words md:text-[23px]"><Money minor={data.business.collectedMonthDop} /></div>
               <div className="muted mt-1.5 text-[12px]">{data.business.collectedMissing ? `${data.business.collectedMissing} payment(s) need a DOP equivalent` : "DOP-valued income · owner movements excluded"}</div>
             </Link>
           </div>

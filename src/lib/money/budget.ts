@@ -154,7 +154,7 @@ export async function getBudgetPlan(userId: string, workspace: Workspace, period
         missingCount: s?.missingCount ?? 0,
         headroomPct: availableMinor > 0 ? Math.round(((availableMinor - actualMinor) / availableMinor) * 100) : null,
       };
-      if (line.targetMinor || line.actualMinor || line.carryMinor || line.adjustmentMinor || period.type === "month") lines.push(line);
+      lines.push(line);
     }
   }
   const groups = budgetable.map((g) => {

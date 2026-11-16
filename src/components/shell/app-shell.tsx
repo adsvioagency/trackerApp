@@ -12,14 +12,14 @@ export function AppShell({ view, email, isDemo, children }: { view: WorkspaceVie
   return (
     <div className="flex min-h-dvh">
       {/* Desktop sidebar */}
-      <aside className="sticky top-0 hidden h-dvh w-[232px] shrink-0 flex-col border-r border-rule bg-paper-deep/60 px-3 py-4 md:flex">
+      <aside className="sticky top-0 hidden h-dvh w-[240px] shrink-0 flex-col border-r border-rule bg-paper-deep/60 px-3 py-4 md:flex">
         <div className="mb-4 flex items-center justify-between px-2">
           <Link href="/today" className="text-[20px]">
             <WordmarkText />
           </Link>
         </div>
         <div className="mb-4 px-1">
-          <WorkspaceSwitcher view={view} />
+          <WorkspaceSwitcher view={view} full />
         </div>
         <div className="mb-4 px-1">
           <AddMenu view={view} variant="sidebar" />

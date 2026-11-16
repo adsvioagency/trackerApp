@@ -63,11 +63,8 @@ export async function paycheckWindowFor(userId: string, workspace: Workspace, da
       break;
     }
   }
-  if (!current) {
-    // Date is before the first payday; use the first window.
-    current = list[0];
-    next = list[1] ?? null;
-  }
+  // Before the first scheduled payday there is no paycheck window yet; callers fall back to the month view.
+  if (!current) return null;
   return { payday: current, start: current.date, end: next ? addDaysISO(next.date, -1) : addMonthsISO(current.date, 1), next };
 }
 

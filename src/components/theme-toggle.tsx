@@ -19,6 +19,7 @@ export function ThemeToggle({ compact = false }: { compact?: boolean }) {
   useEffect(() => {
     try {
       const saved = (localStorage.getItem("pa-theme") as Pref) || "system";
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing from localStorage (external system)
       setPref(saved);
     } catch {}
     const mq = window.matchMedia("(prefers-color-scheme: dark)");

@@ -3,20 +3,8 @@ import { and, asc, eq, isNull, sql } from "drizzle-orm";
 import { getDb, schema } from "@/db";
 import type { Workspace } from "@/lib/settings";
 
-export type AccountType = "cash" | "checking" | "savings" | "credit_card" | "loan" | "other";
-
-export const ACCOUNT_TYPE_LABEL: Record<AccountType, string> = {
-  cash: "Cash",
-  checking: "Checking",
-  savings: "Savings",
-  credit_card: "Credit card",
-  loan: "Loan",
-  other: "Other",
-};
-
-export function isLiability(type: AccountType) {
-  return type === "credit_card" || type === "loan";
-}
+import { ACCOUNT_TYPE_LABEL, isLiability, type AccountType } from "./account-types";
+export { ACCOUNT_TYPE_LABEL, isLiability, type AccountType };
 
 export type AccountWithBalance = typeof schema.accounts.$inferSelect & {
   /** Signed balance in the account's currency. Liabilities are negative when owed. */
