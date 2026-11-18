@@ -6,7 +6,7 @@ import { listDebts } from "@/lib/money/debts";
 import { listAccounts } from "@/lib/money/accounts";
 import { GoalsClient } from "./goals-client";
 
-export const metadata: Metadata = { title: "Goals & debts" };
+export const metadata: Metadata = { title: "Savings & debts" };
 
 export default async function GoalsPage() {
   const { user, view, today } = await getCtx();
@@ -15,7 +15,7 @@ export default async function GoalsPage() {
   const [goals, debts, accounts] = await Promise.all([listGoals(user.id, ws, { includeArchived: true }), listDebts(user.id, ws, { includeArchived: true }), listAccounts(user.id, ws === "combined" ? "combined" : ws)]);
   return (
     <div>
-      <PageHeader title="Goals & debts" description="Savings transfers count toward goals and move cash between accounts. Loan payments track principal apart from interest and fees." />
+      <PageHeader title="Savings & debts" description="Savings transfers count toward goals and move cash between accounts. Loan payments track principal apart from interest and fees." />
       <GoalsClient
         today={today}
         workspace={writeWs}

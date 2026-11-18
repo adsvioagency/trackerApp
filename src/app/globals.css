@@ -463,3 +463,32 @@ dialog {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
+@media print {
+  body:has(.goals-print-plan) {
+    background: white !important;
+    color: black !important;
+  }
+
+  .app-shell:has(.goals-print-plan),
+  .app-shell:has(.goals-print-plan) > div,
+  .app-shell:has(.goals-print-plan) main {
+    display: block;
+    min-height: 0;
+    padding: 0;
+  }
+
+  .app-shell:has(.goals-print-plan) .app-chrome {
+    display: none !important;
+  }
+
+  .goals-print-plan :is(.card, .pill) {
+    color: black !important;
+    background: white !important;
+    border-color: #999 !important;
+    box-shadow: none !important;
+  }
+
+  .goals-print-plan :is(.muted, .eyebrow) {
+    color: #444 !important;
+  }
+}

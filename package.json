@@ -13,7 +13,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx --conditions=react-server scripts/migrate.ts",
     "db:studio": "drizzle-kit studio",
-    "demo": "APP_MODE=demo next dev -p 3001",
+    "demo": "cross-env APP_MODE=demo node ./node_modules/next/dist/bin/next dev -p 3001",
     "demo:seed": "tsx --conditions=react-server scripts/seed-demo.ts",
     "cron:tick": "tsx --conditions=react-server scripts/cron-tick.ts",
     "outbox": "tsx scripts/outbox.ts"

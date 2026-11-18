@@ -139,7 +139,7 @@ export default async function MoneyPage() {
               <EmptyState title="No budget yet" body="Set monthly or paycheck targets to see headroom here." action={<Link href="/money/budget" className="btn btn-primary btn-sm">Set budget</Link>} />
             )}
           </Card>
-          <Card title="Goals & debts" action={<Link href="/money/goals" className="btn btn-ghost btn-sm">Open</Link>}>
+          <Card title="Savings & debts" action={<Link href="/money/goals" className="btn btn-ghost btn-sm">Open</Link>}>
             {goals.length + debts.length === 0 ? (
               <EmptyState title="Nothing tracked yet" />
             ) : (

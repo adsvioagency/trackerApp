@@ -24,7 +24,8 @@ const MIGRATIONS_FOLDER = path.join(process.cwd(), "drizzle");
 function dataDir(): string {
   const mode = process.env.APP_MODE === "demo" ? "demo" : "live";
   const dir = process.env.APP_DATA_DIR || path.join("data", mode);
-  return path.isAbsolute(dir) ? dir : path.join(process.cwd(), dir);
+  // The embedded database is local runtime state, never a deployment asset.
+  return path.isAbsolute(dir) ? dir : path.join(/* turbopackIgnore: true */ process.cwd(), dir);
 }
 
 async function openPglite(): Promise<Db> {

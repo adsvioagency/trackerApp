@@ -10,12 +10,13 @@ import { listTransactions, TX_KIND_LABEL } from "@/lib/money/transactions";
 import { listInvoices, listProposals } from "@/lib/business/documents";
 import { SearchBox } from "./search-box";
 import { fmtDate } from "@/lib/dates";
+import { listTrackedGoals } from "@/lib/goal-tracker";
 
 export const metadata: Metadata = { title: "Search" };
 
 export default async function SearchPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const { q = "" } = await searchParams;
-  const { user, today } = await getCtx();
+  const { user, today, view } = await getCtx();
   const query = q.trim();
   const lower = query.toLowerCase();
   const results = query
@@ -27,12 +28,13 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
         listTransactions(user.id, { search: query, limit: 50 }),
         listInvoices(user.id, { status: "all", today }).then((r) => r.filter((i) => `${i.number} ${i.title} ${i.clientName}`.toLowerCase().includes(lower)).slice(0, 30)),
         listProposals(user.id).then((r) => r.filter((p) => `${p.number} ${p.title} ${p.clientName}`.toLowerCase().includes(lower)).slice(0, 30)),
+        listTrackedGoals(user.id, view, { search: query }).then((r) => r.slice(0, 30)),
       ])
     : null;
   const total = results ? results.reduce((s, r) => s + r.length, 0) : 0;
   return (
     <div className="mx-auto max-w-[900px]">
-      <PageHeader title="Search" description="Clients, projects, tasks, notes, transactions, proposals and invoices." />
+      <PageHeader title="Search" description="Clients, projects, tasks, goals, notes, transactions, proposals and invoices." />
       <SearchBox initial={query} />
       {!query ? null : total === 0 ? (
         <Card className="mt-4"><EmptyState title={`Nothing found for “${query}”`} /></Card>
@@ -42,6 +44,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
           {results![1].length > 0 && <Section title="Projects">{results![1].map((p) => <RowLink key={p.id} href={`/projects/${p.id}`} title={p.name} subtitle={p.clientName} badge={<Pill>{p.status}</Pill>} />)}</Section>}
           {results![2].length > 0 && <Section title="Tasks">{results![2].map((t) => <RowLink key={t.id} href={`/tasks?task=${t.id}`} title={t.title} subtitle={t.dueDate ? `Due ${fmtDate(t.dueDate)}` : "No date"} badge={<Pill tone={t.status === "done" ? "ok" : "neutral"}>{t.status}</Pill>} />)}</Section>}
           {results![3].length > 0 && <Section title="Notes">{results![3].map((n) => <RowLink key={n.id} href={`/notes/${n.id}`} title={n.title ?? n.body.slice(0, 60)} subtitle={n.body.slice(0, 100)} />)}</Section>}
+          {results![7].length > 0 && <Section title="Goals">{results![7].map((g) => <RowLink key={g.id} href={"/goals/" + g.id} title={g.title} subtitle={g.year + " · " + g.area} badge={g.archivedAt ? <Pill>Archived</Pill> : undefined} />)}</Section>}
           {results![4].length > 0 && <Section title="Transactions">{results![4].map((t) => <RowLink key={t.id} href={`/money/transactions/${t.id}`} title={t.merchant ?? TX_KIND_LABEL[t.kind]} subtitle={`${fmtDate(t.date)} · ${t.accountName}`} right={<Money minor={t.amountMinor} currency={t.currency} />} />)}</Section>}
           {results![6].length > 0 && <Section title="Proposals">{results![6].map((p) => <RowLink key={p.id} href={`/documents/proposals/${p.id}`} title={`${p.number} · ${p.title}`} subtitle={p.clientName} badge={<Pill>{p.status}</Pill>} />)}</Section>}
           {results![5].length > 0 && <Section title="Invoices">{results![5].map((i) => <RowLink key={i.id} href={`/documents/invoices/${i.id}`} title={`${i.number} · ${i.title}`} subtitle={i.clientName} badge={<Pill>{i.status}</Pill>} right={<Money minor={i.balanceMinor} currency={i.currency} />} />)}</Section>}

@@ -64,13 +64,13 @@ export default async function SettingsPage() {
       </Card>
 
       <Card title="Export & backup">
-        <p className="muted mb-3 text-[14px]">Download your data as CSV files (transactions, accounts, clients, projects, invoices, payments, tasks, notes) or a full JSON backup.</p>
+        <p className="muted mb-3 text-[14px]">Download your records, including goals and milestones, as CSV or JSON. Uploaded files are stored separately.</p>
         <div className="flex flex-wrap gap-2">
           <a className="btn btn-secondary" href="/api/export?format=csv">
             Download CSV bundle
           </a>
           <a className="btn btn-secondary" href="/api/export?format=json">
-            Download JSON backup
+            Download JSON
           </a>
         </div>
       </Card>

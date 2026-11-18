@@ -18,6 +18,7 @@ import {
   PiggyBank,
   Landmark,
   Bell,
+  Target,
 } from "lucide-react";
 import type { WorkspaceView } from "@/lib/settings";
 export type NavItem = { href: string; label: string; icon: React.ComponentType<{ className?: string }>; exact?: boolean };
@@ -53,6 +54,7 @@ export function sidebarSections(view: WorkspaceView): { title?: string; items: N
   const common: NavItem[] = [
     { href: "/tasks", label: "Tasks", icon: CheckSquare },
     { href: "/notes", label: "Notes", icon: StickyNote },
+    { href: "/goals", label: "Goals", icon: Target },
     { href: "/calendar", label: "Calendar", icon: CalendarDays },
     { href: "/assistant", label: "Assistant", icon: Sparkles },
   ];
@@ -96,7 +98,7 @@ export function sidebarSections(view: WorkspaceView): { title?: string; items: N
         { href: "/money/transactions", label: "Transactions", icon: Receipt },
         { href: "/money/budget", label: "Budget", icon: BarChart3 },
         { href: "/money/bills", label: "Bills & paydays", icon: CalendarDays },
-        { href: "/money/goals", label: "Goals & debts", icon: PiggyBank },
+        { href: "/money/goals", label: "Savings & debts", icon: PiggyBank },
         { href: "/money/accounts", label: "Accounts", icon: Landmark },
         { href: "/money/reports", label: "Reports", icon: BarChart3 },
       ],

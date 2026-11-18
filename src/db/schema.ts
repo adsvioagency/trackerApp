@@ -437,6 +437,39 @@ export const goals = pgTable(
   (t) => [index("goals_user_idx").on(t.userId, t.workspace)],
 );
 
+export const trackedGoals = pgTable(
+  "tracked_goals",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    workspace: workspaceEnum("workspace").notNull(),
+    year: integer("year").notNull(),
+    area: text("area").notNull(),
+    title: text("title").notNull(),
+    motivation: text("motivation"),
+    outcome: text("outcome"),
+    dueDate: date("due_date"),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("tracked_goals_owner_year").on(t.userId, t.year, t.workspace)],
+);
+
+export const goalMilestones = pgTable(
+  "goal_milestones",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    goalId: uuid("goal_id").notNull().references(() => trackedGoals.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    dueDate: date("due_date"),
+    position: integer("position").notNull(),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("goal_milestones_goal").on(t.goalId)],
+);
+
 export const debts = pgTable(
   "debts",
   {

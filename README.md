@@ -161,8 +161,10 @@ or contact clients.
 
 ## 5. Your data: export, backup, import
 
-- **Export / backup:** Settings → *Export* downloads a CSV bundle or a full JSON
-  backup (owner-only route `/api/export`).
+- **Data exports:** Settings → *Export* downloads a CSV bundle or a JSON snapshot
+  of selected data (owner-only route `/api/export`). Annual goals and milestones
+  are included. The app does not restore these exports or include uploaded file
+  contents. Back up the database and file storage together for recovery.
 - **Embedded database backup:** stop the app and copy the `./data/live` folder.
 - **Import:** Money → *Import* takes a CSV (for example, exported from your
   Google Sheets tracker). Map the columns, review the preview with duplicates

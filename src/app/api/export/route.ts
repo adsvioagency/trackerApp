@@ -2,17 +2,18 @@ import { eq } from "drizzle-orm";
 import { getCurrentUser } from "@/lib/auth";
 import { getDb, schema } from "@/db";
 import { toCsv } from "@/lib/csv";
+import { listTrackedGoals } from "@/lib/goal-tracker";
 
 export const dynamic = "force-dynamic";
 
-/** Owner-only export: CSV bundle (multiple sections in one file) or a full JSON backup. */
+/** Owner-only export of selected records as a CSV bundle or JSON snapshot. */
 export async function GET(req: Request) {
   const user = await getCurrentUser();
   if (!user) return new Response("Sign in required", { status: 401 });
   const format = new URL(req.url).searchParams.get("format") === "json" ? "json" : "csv";
   const db = await getDb();
   const uid = user.id;
-  const [accounts, categories, groups, transactions, splits, bills, occurrences, schedules, paydays, budgetLines, goals, debts, clients, contacts, projects, installments, proposals, invoices, payments, tasks, notes, events] = await Promise.all([
+  const [accounts, categories, groups, transactions, splits, bills, occurrences, schedules, paydays, budgetLines, goals, debts, clients, contacts, projects, installments, proposals, invoices, payments, tasks, notes, events, trackedGoals] = await Promise.all([
     db.query.accounts.findMany({ where: eq(schema.accounts.userId, uid) }),
     db.query.categories.findMany({ where: eq(schema.categories.userId, uid) }),
     db.query.categoryGroups.findMany({ where: eq(schema.categoryGroups.userId, uid) }),
@@ -35,10 +36,11 @@ export async function GET(req: Request) {
     db.query.tasks.findMany({ where: eq(schema.tasks.userId, uid) }),
     db.query.notes.findMany({ where: eq(schema.notes.userId, uid) }),
     db.query.events.findMany({ where: eq(schema.events.userId, uid) }),
+    listTrackedGoals(uid, "combined"),
   ]);
   const stamp = new Date().toISOString().slice(0, 10);
   if (format === "json") {
-    const body = JSON.stringify({ exportedAt: new Date().toISOString(), owner: user.email, version: 1, data: { accounts, categoryGroups: groups, categories, transactions, transactionSplits: splits, bills, billOccurrences: occurrences, incomeSchedules: schedules, paydayOccurrences: paydays, budgetLines, goals, debts, clients, clientContacts: contacts, projects, projectInstallments: installments, proposals, invoices, payments, tasks, notes, events } }, null, 2);
+    const body = JSON.stringify({ exportedAt: new Date().toISOString(), owner: user.email, version: 1, data: { accounts, categoryGroups: groups, categories, transactions, transactionSplits: splits, bills, billOccurrences: occurrences, incomeSchedules: schedules, paydayOccurrences: paydays, budgetLines, goals, debts, clients, clientContacts: contacts, projects, projectInstallments: installments, proposals, invoices, payments, tasks, notes, events, trackedGoals } }, null, 2);
     return new Response(body, { headers: { "Content-Type": "application/json", "Content-Disposition": `attachment; filename="assistant-backup-${stamp}.json"` } });
   }
   const catName = new Map(categories.map((c) => [c.id, c.name]));
@@ -55,6 +57,8 @@ export async function GET(req: Request) {
     ["PAYMENTS", [["id", "date", "client", "project", "invoice", "amount", "currency", "dop_equivalent", "account"], ...payments.map((p) => [p.id, p.date, clientName.get(p.clientId), p.projectId ? projName.get(p.projectId) : "", p.invoiceId, m(p.amountMinor), p.currency, m(p.dopEquivalentMinor), accName.get(p.accountId)])]],
     ["TASKS", [["id", "workspace", "title", "due_date", "status", "priority", "project"], ...tasks.map((t) => [t.id, t.workspace, t.title, t.dueDate, t.status, t.priority, t.projectId ? projName.get(t.projectId) : ""])]],
     ["NOTES", [["id", "workspace", "title", "body", "tags", "pinned"], ...notes.map((n) => [n.id, n.workspace, n.title, n.body, n.tags.join(" "), n.pinned ? "yes" : "no"])]],
+    ["GOALS", [["id", "workspace", "year", "area", "title", "why", "success", "target_date", "status"], ...trackedGoals.map((g) => [g.id, g.workspace, g.year, g.area, g.title, g.motivation, g.outcome, g.dueDate, g.archivedAt ? "archived" : g.completedAt ? "complete" : "active"])]],
+    ["GOAL MILESTONES", [["goal_id", "id", "title", "target_date", "position", "completed"], ...trackedGoals.flatMap((g) => g.milestones.map((s) => [g.id, s.id, s.title, s.dueDate, s.position, s.completedAt ? "yes" : "no"]))]],
   ];
   const csv = sections.map(([name, rows]) => `# ${name}\r\n${toCsv(rows)}`).join("\r\n\r\n");
   return new Response("﻿" + csv, { headers: { "Content-Type": "text/csv; charset=utf-8", "Content-Disposition": `attachment; filename="assistant-export-${stamp}.csv"` } });

@@ -1,6 +1,12 @@
 # Build status
 
-Last updated: 2026-11-16 · All five stages complete · `npm test`: 23/23 passing · `npm run lint`, `npm run typecheck` and `npm run build` are clean.
+Last updated: 2026-11-18 · Annual goals added · `npm test`: 25/25 passing · Production build passed.
+
+## Annual goals
+- Goals is available under Work in the desktop sidebar or More on a phone. Plans are organized by year and workspace, with custom areas, optional target dates, success criteria, editable milestones, and progress. Use Print plan for a paper copy.
+- Goals and milestones are included in search and data exports. The migration adds new tables alongside the existing savings and debt records.
+- Verified in a browser on a 390 px mobile viewport and desktop using an isolated demo database. Covered creation, milestone completion, archive and restore, workspace filtering, print view, search and export.
+- Restart the local app to apply the migration to the embedded database. Apply `npm run db:migrate` if deploying with external Postgres.
 
 ## Stage 1: Foundation ✅
 - Email-code sign-in with an owner allowlist, sign-out, 30-day httpOnly sessions, and a branded sign-in page with the wordmark.
@@ -49,6 +55,7 @@ Last updated: 2026-11-16 · All five stages complete · `npm test`: 23/23 passin
 - **Shared phone + desktop data:** a Supabase/Postgres `DATABASE_URL`, then `npm run db:migrate`.
 - **Real email** (sign-in codes on your phone, reminders): a Resend account, a verified domain, and `RESEND_API_KEY`. Then set `REMINDERS_DELIVERY=on` and enable reminders in Settings.
 - **Hosting and the reminder schedule:** a Vercel project with the environment variables. The cron in `vercel.json` runs once deployed.
+- **Free hosting option:** a Netlify deployment needs its own scheduled function for reminders and a hosted test of sign-in, private files, PDFs and email. The current project only configures the Vercel schedule.
 - **AI answers:** `ANTHROPIC_API_KEY`. The Claude path has not been exercised against the live API in this environment (no key here); the rule-based path and the approve-to-apply flow are tested.
 - **Cloud file storage:** a private Supabase bucket and `STORAGE_DRIVER=supabase`. Not exercised without credentials.
 
@@ -57,3 +64,5 @@ Last updated: 2026-11-16 · All five stages complete · `npm test`: 23/23 passin
 - Next.js allows one dev server per folder, so `npm run dev` and `npm run demo` can't run at the same time.
 - With the embedded database, stop the server before running CLI scripts (`db:migrate`, `cron:tick`, `demo:seed`).
 - Google Sheets is supported through CSV export and import; there is no live Sheets connection.
+- The Settings data export includes selected records. It does not include uploaded file contents or serve as a one-click restore. Back up the database and file storage separately.
+- Production build traces exclude local app data, private reference files, and local environment files. Verified across 48 traces that none were listed and that the PDF fonts, logo, and SQL migrations were still present.

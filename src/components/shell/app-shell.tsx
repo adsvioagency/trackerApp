@@ -11,10 +11,10 @@ import { Hotkeys } from "./hotkeys";
 
 export function AppShell({ view, email, isDemo, children }: { view: WorkspaceView; email: string; isDemo: boolean; children: React.ReactNode }) {
   return (
-    <div className="flex min-h-dvh">
+    <div className="app-shell flex min-h-dvh">
       <Hotkeys />
       {/* Desktop sidebar */}
-      <aside className="sticky top-0 hidden h-dvh w-[240px] shrink-0 flex-col border-r border-rule bg-paper-deep/60 px-3 py-4 md:flex">
+      <aside className="app-chrome sticky top-0 hidden h-dvh w-[240px] shrink-0 flex-col border-r border-rule bg-paper-deep/60 px-3 py-4 md:flex">
         <div className="mb-4 flex items-center justify-between px-2">
           <Link href="/today" className="text-[20px]">
             <WordmarkText />
@@ -46,7 +46,7 @@ export function AppShell({ view, email, isDemo, children }: { view: WorkspaceVie
 
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Mobile top bar */}
-        <header className="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-rule bg-paper/95 px-4 py-2.5 backdrop-blur md:hidden">
+        <header className="app-chrome sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-rule bg-paper/95 px-4 py-2.5 backdrop-blur md:hidden">
           <Link href="/today" className="text-[18px]">
             <WordmarkText />
           </Link>
@@ -56,8 +56,10 @@ export function AppShell({ view, email, isDemo, children }: { view: WorkspaceVie
           <div className="bg-sun-wash px-4 py-1.5 text-center text-[12px] font-semibold text-warn">Demo environment · fictional data · no outbound email</div>
         )}
         <main className="mx-auto w-full max-w-[1200px] flex-1 px-4 pb-[calc(96px+env(safe-area-inset-bottom))] pt-4 md:px-8 md:pb-12 md:pt-7">{children}</main>
-        <MobileTabs view={view} />
-        <AddMenu view={view} variant="fab" />
+        <div className="app-chrome contents">
+          <MobileTabs view={view} />
+          <AddMenu view={view} variant="fab" />
+        </div>
       </div>
     </div>
   );
