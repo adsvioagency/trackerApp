@@ -8,6 +8,9 @@ const nextConfig: NextConfig = {
     "/*": ["./data/**/*", "./Adsvio Brand info/**/*", "./.env*"],
   },
   turbopack: {
+    resolveAlias: process.env.TRACKER_NETLIFY_BUILD === "1"
+      ? { "@/db/embedded": "./src/db/embedded-disabled.ts" }
+      : {},
     rules: {
       "*.css": {
         loaders: ["@tailwindcss/turbopack"],

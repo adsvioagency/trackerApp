@@ -15,7 +15,10 @@ if (parkProxy) {
 }
 
 try {
-  const build = spawnSync(process.execPath, ["node_modules/next/dist/bin/next", "build"], { stdio: "inherit" });
+  const build = spawnSync(process.execPath, ["node_modules/next/dist/bin/next", "build"], {
+    env: { ...process.env, TRACKER_NETLIFY_BUILD: "1" },
+    stdio: "inherit",
+  });
   if (build.error) throw build.error;
   if (build.status !== 0) process.exitCode = build.status ?? 1;
   else if (windows) {

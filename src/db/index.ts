@@ -7,9 +7,7 @@
  *
  * The same Drizzle schema and SQL migrations are used in both cases.
  */
-import path from "node:path";
-import fs from "node:fs";
-import { drizzle as drizzlePglite, type PgliteDatabase } from "drizzle-orm/pglite";
+import type { PgliteDatabase } from "drizzle-orm/pglite";
 import { drizzle as drizzlePg, type PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import * as schema from "./schema";
 
@@ -19,31 +17,10 @@ type Cache = { db?: Db; ready?: Promise<Db>; closer?: () => Promise<void> };
 const globalCache = globalThis as unknown as { __pa_db?: Cache };
 const cache: Cache = (globalCache.__pa_db ??= {});
 
-const MIGRATIONS_FOLDER = path.join(process.cwd(), "drizzle");
-
-function dataDir(): string {
-  const mode = process.env.APP_MODE === "demo" ? "demo" : "live";
-  const dir = process.env.APP_DATA_DIR || path.join("data", mode);
-  // The embedded database is local runtime state, never a deployment asset.
-  return path.isAbsolute(dir) ? dir : path.join(/* turbopackIgnore: true */ process.cwd(), dir);
-}
-
 async function openPglite(): Promise<Db> {
-  const { PGlite } = await import("@electric-sql/pglite");
-  const { migrate } = await import("drizzle-orm/pglite/migrator");
-  let client: InstanceType<typeof PGlite>;
-  if (process.env.PGLITE_MEMORY === "1") {
-    client = new PGlite();
-  } else {
-    const dir = path.join(dataDir(), "pglite");
-    fs.mkdirSync(dir, { recursive: true });
-    client = new PGlite(dir);
-  }
-  const db = drizzlePglite(client, { schema });
-  if (fs.existsSync(MIGRATIONS_FOLDER)) {
-    await migrate(db, { migrationsFolder: MIGRATIONS_FOLDER });
-  }
-  cache.closer = () => client.close();
+  const { openEmbeddedDatabase } = await import("@/db/embedded");
+  const { db, close } = await openEmbeddedDatabase();
+  cache.closer = close;
   return db;
 }
 
