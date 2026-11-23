@@ -6,11 +6,12 @@
  * resolves the current user from the session and scopes queries by user id.
  */
 import "server-only";
+import { cache } from "react";
 import { cookies, headers } from "next/headers";
 import { and, eq, gt, isNull, lt, sql } from "drizzle-orm";
 import { getDb, schema } from "@/db";
 import { env } from "@/lib/env";
-import { hmac, randomCode, randomToken, sha256 } from "./crypto";
+import { hmac, randomCode, randomToken, safeEqual, sha256 } from "./crypto";
 import { getEmailTransport } from "@/lib/email";
 import { signInEmail } from "@/lib/email/templates";
 
@@ -29,12 +30,26 @@ export function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
 }
 
+/** Optional, randomly generated credential for a private installation without email delivery. */
+export async function signInWithAccessKey(rawEmail: string, key: string) {
+  const email = normalizeEmail(rawEmail);
+  const hash = env.ownerAccessKeyHash;
+  if (env.isDemo || !/^[a-f0-9]{64}$/.test(hash) || key.length > 128) return false;
+  if (!safeEqual(sha256(key), hash) || !isAllowedEmail(email)) return false;
+  const user = await ensureUser(email);
+  await createSession(user.id);
+  return true;
+}
+
 /** Create and email a sign-in code. Returns the code only when dev display is enabled. */
 export async function requestSignInCode(rawEmail: string): Promise<{ ok: boolean; devCode?: string; error?: string }> {
   const email = normalizeEmail(rawEmail);
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return { ok: false, error: "Enter a valid email address." };
   // Do not reveal whether an address is on the allowlist: respond the same way.
   if (!isAllowedEmail(email)) return { ok: true };
+  if (env.ownerAccessKeyHash && env.emailTransport !== "resend") {
+    return { ok: false, error: "Use your private access key to sign in." };
+  }
 
   const db = await getDb();
   // Throttle: at most 5 codes per 15 minutes per address.
@@ -53,7 +68,7 @@ export async function requestSignInCode(rawEmail: string): Promise<{ ok: boolean
   const transport = getEmailTransport();
   const tpl = signInEmail({ code, minutes: CODE_MINUTES, appUrl: env.appUrl });
   const result = await transport.send({ to: email, subject: tpl.subject, text: tpl.text, html: tpl.html });
-  if (!result.ok) return { ok: false, error: `Could not send the email (${result.error}).` };
+  if (!result.ok) return { ok: false, error: "Could not send the code. Try again shortly." };
   return { ok: true, devCode: env.showDevCode && transport.name === "console" ? code : undefined };
 }
 
@@ -93,8 +108,12 @@ export async function ensureUser(email: string) {
   const [created] = await db
     .insert(schema.users)
     .values({ email, timezone: env.timezone })
+    .onConflictDoNothing({ target: schema.users.email })
     .returning();
-  return created;
+  if (created) return created;
+  const user = await db.query.users.findFirst({ where: eq(schema.users.email, email) });
+  if (!user) throw new Error("Could not create the owner account.");
+  return user;
 }
 
 export async function createSession(userId: string) {
@@ -131,7 +150,7 @@ export async function signOut() {
 }
 
 /** Current signed-in owner or null. Cached per request by Next. */
-export async function getCurrentUser(): Promise<CurrentUser | null> {
+export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
   const jar = await cookies();
   const token = jar.get(SESSION_COOKIE)?.value;
   if (!token) return null;
@@ -146,7 +165,7 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
   if (!hit) return null;
   if (!isAllowedEmail(hit.user.email)) return null; // allowlist removal revokes access
   return hit.user;
-}
+});
 
 export class UnauthorizedError extends Error {
   constructor() {

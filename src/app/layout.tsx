@@ -20,6 +20,7 @@ export const metadata: Metadata = {
   title: { default: "Personal Assistant System", template: "%s · Personal Assistant" },
   description: "Private assistant for personal finances and Adsvio Agency operations.",
   applicationName: "Adsvio Assistant",
+  robots: { index: false, follow: false },
   manifest: "/manifest.webmanifest",
   icons: { icon: "/brand/icon-192.png", apple: "/brand/apple-touch-icon.png" },
   appleWebApp: { capable: true, title: "Assistant", statusBarStyle: "default" },

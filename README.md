@@ -105,8 +105,7 @@ Never commit real values. `.env*` files are git-ignored (except `.env.example`).
 
 ## 4. Use the same data on phone and desktop (deployment)
 
-Nothing below has been done for you: no accounts were created, nothing was
-published, and no paid service was enabled. These are the steps when you are ready.
+Set up a persistent database and owner sign-in before entering real records on a hosted deployment.
 
 ### 4.1 Database: Supabase (or any Postgres)
 
@@ -145,6 +144,23 @@ that domain). Sign-in codes go only to emails in `OWNER_EMAILS`.
 
 Any host that runs Node.js works. Without Vercel Cron, call the cron URL hourly
 from any scheduler with the bearer header, or run `npm run cron:tick`.
+
+### Netlify hosting
+
+The existing app can run on Netlify with managed Postgres and private file storage.
+Netlify applies the SQL files in `netlify/database/migrations` before publishing.
+When adding a Drizzle migration, also add its unchanged SQL to that folder under
+a new timestamped filename. Current installs can keep using `DATABASE_URL` and
+`npm run db:migrate` with their own Postgres.
+
+Set `APP_MODE=live`, `APP_URL`, `APP_SECRET` and `OWNER_EMAILS` in production.
+If email delivery is pending, generate a random private access key of at least
+24 bytes through a password manager or cryptographic generator. Save the original
+in the owner's password manager and set only its lowercase SHA-256 digest as
+`OWNER_ACCESS_KEY_SHA256`. The owner then signs in with their email and access key.
+Remove that variable to return to email-code sign-in once Resend is configured.
+The daily Netlify reminder function uses `APP_URL` and `CRON_SECRET`. Resend
+and the owner's reminder settings control outbound email delivery.
 
 ### 4.5 AI assistant (optional)
 

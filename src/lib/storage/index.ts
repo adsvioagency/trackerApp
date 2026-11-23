@@ -8,6 +8,7 @@
 import "server-only";
 import fs from "node:fs/promises";
 import path from "node:path";
+import { getStore } from "@netlify/blobs";
 import { env } from "@/lib/env";
 
 export interface StorageDriver {
@@ -71,9 +72,26 @@ class SupabaseStorage implements StorageDriver {
   }
 }
 
+class NetlifyStorage implements StorageDriver {
+  readonly name = "netlify";
+  private readonly store = getStore({ name: "tracker-private-files", consistency: "strong" });
+
+  async put(key: string, data: Buffer, mime: string) {
+    await this.store.set(key, new Blob([new Uint8Array(data)], { type: mime }));
+  }
+  async get(key: string) {
+    const data = await this.store.get(key, { type: "arrayBuffer" });
+    return data ? Buffer.from(data) : null;
+  }
+  async remove(key: string) {
+    await this.store.delete(key);
+  }
+}
+
 export function getStorage(): StorageDriver {
   if (env.storageDriver === "supabase" && env.supabaseUrl && env.supabaseServiceRoleKey) {
     return new SupabaseStorage(env.supabaseUrl, env.supabaseServiceRoleKey, env.supabaseBucket);
   }
+  if (process.env.NETLIFY === "true" || process.env.NETLIFY_DB_URL) return new NetlifyStorage();
   return new LocalStorage(path.join(process.cwd(), env.dataDir, "files"));
 }

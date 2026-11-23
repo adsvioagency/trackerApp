@@ -60,10 +60,16 @@ async function openPostgres(url: string): Promise<Db> {
 export async function getDb(): Promise<Db> {
   if (cache.db) return cache.db;
   if (!cache.ready) {
-    const url = process.env.DATABASE_URL;
+    const url = process.env.DATABASE_URL || process.env.NETLIFY_DB_URL;
+    if (!url && (process.env.NETLIFY === "true" || process.env.VERCEL === "1")) {
+      throw new Error("A persistent Postgres database is required for hosted tracker sessions and records.");
+    }
     cache.ready = (url ? openPostgres(url) : openPglite()).then((db) => {
       cache.db = db;
       return db;
+    }).catch((error: unknown) => {
+      cache.ready = undefined;
+      throw error;
     });
   }
   return cache.ready;

@@ -73,40 +73,46 @@ export async function createTransaction(userId: string, input: NewTransactionInp
   }
   if (account.currency !== "DOP" && input.dopEquivalentMinor !== undefined && input.dopEquivalentMinor !== null) assertPositive(input.dopEquivalentMinor, "DOP equivalent");
 
-  // Idempotent create: a retry with the same key returns the existing record.
-  if (input.idempotencyKey) {
-    const existing = await db.query.transactions.findFirst({ where: and(eq(schema.transactions.userId, userId), eq(schema.transactions.idempotencyKey, input.idempotencyKey)) });
-    if (existing) return existing;
-  }
-
-  const [tx] = await db
-    .insert(schema.transactions)
-    .values({
-      userId,
-      workspace: input.workspace,
-      kind: input.kind,
-      date: input.date,
-      accountId: input.accountId,
-      amountMinor: input.amountMinor,
-      currency: account.currency,
-      dopEquivalentMinor: account.currency === "DOP" ? null : input.dopEquivalentMinor ?? null,
-      categoryId: input.splits?.length ? null : input.categoryId ?? null,
-      merchant: input.merchant?.trim() || null,
-      note: input.note?.trim() || null,
-      clientId: input.clientId ?? null,
-      projectId: input.projectId ?? null,
-      refundOfId: input.refundOfId ?? null,
-      billOccurrenceId: input.billOccurrenceId ?? null,
-      paymentId: input.paymentId ?? null,
-      receiptFileId: input.receiptFileId ?? null,
-      idempotencyKey: input.idempotencyKey ?? null,
-      importBatchId: input.importBatchId ?? null,
-      importHash: input.importHash ?? null,
-    })
-    .returning();
-  if (input.splits?.length) {
-    await db.insert(schema.transactionSplits).values(input.splits.map((s) => ({ transactionId: tx.id, categoryId: s.categoryId, amountMinor: s.amountMinor, note: s.note ?? null, clientId: s.clientId ?? null, projectId: s.projectId ?? null })));
-  }
+  const { tx, created } = await db.transaction(async (transaction) => {
+    const [tx] = await transaction
+      .insert(schema.transactions)
+      .values({
+        userId,
+        workspace: input.workspace,
+        kind: input.kind,
+        date: input.date,
+        accountId: input.accountId,
+        amountMinor: input.amountMinor,
+        currency: account.currency,
+        dopEquivalentMinor: account.currency === "DOP" ? null : input.dopEquivalentMinor ?? null,
+        categoryId: input.splits?.length ? null : input.categoryId ?? null,
+        merchant: input.merchant?.trim() || null,
+        note: input.note?.trim() || null,
+        clientId: input.clientId ?? null,
+        projectId: input.projectId ?? null,
+        refundOfId: input.refundOfId ?? null,
+        billOccurrenceId: input.billOccurrenceId ?? null,
+        paymentId: input.paymentId ?? null,
+        receiptFileId: input.receiptFileId ?? null,
+        idempotencyKey: input.idempotencyKey ?? null,
+        importBatchId: input.importBatchId ?? null,
+        importHash: input.importHash ?? null,
+      })
+      .onConflictDoNothing({ target: [schema.transactions.userId, schema.transactions.idempotencyKey] })
+      .returning();
+    if (!tx) {
+      const existing = await transaction.query.transactions.findFirst({
+        where: and(eq(schema.transactions.userId, userId), eq(schema.transactions.idempotencyKey, input.idempotencyKey!)),
+      });
+      if (!existing) throw new Error("Could not confirm the transaction. Try again.");
+      return { tx: existing, created: false };
+    }
+    if (input.splits?.length) {
+      await transaction.insert(schema.transactionSplits).values(input.splits.map((s) => ({ transactionId: tx.id, categoryId: s.categoryId, amountMinor: s.amountMinor, note: s.note ?? null, clientId: s.clientId ?? null, projectId: s.projectId ?? null })));
+    }
+    return { tx, created: true };
+  });
+  if (!created) return tx;
   await logActivity({
     userId,
     workspace: input.workspace,
@@ -144,24 +150,36 @@ export async function createTransfer(userId: string, input: TransferInput): Prom
   const toAmount = input.toAmountMinor ?? input.amountMinor;
   assertPositive(toAmount, "Destination amount");
   if (from.currency !== to.currency && input.toAmountMinor == null) throw new Error("Enter the amount received in the destination currency.");
-  if (input.idempotencyKey) {
-    const existing = await db.query.transactions.findMany({ where: and(eq(schema.transactions.userId, userId), eq(schema.transactions.idempotencyKey, input.idempotencyKey)) });
-    if (existing.length) {
-      const grp = existing[0].transferGroupId!;
-      const legs = await db.query.transactions.findMany({ where: eq(schema.transactions.transferGroupId, grp) });
-      return { out: legs.find((l) => l.kind === "transfer_out")!, in: legs.find((l) => l.kind === "transfer_in")! };
+  const { outLeg, inLeg, created } = await db.transaction(async (transaction) => {
+    const group = randomUUID();
+    const base = { userId, date: input.date, transferGroupId: group, note: input.note?.trim() || null, goalId: input.goalId ?? null };
+    const [outLeg] = await transaction
+      .insert(schema.transactions)
+      .values({ ...base, workspace: from.workspace, kind: "transfer_out", accountId: from.id, amountMinor: input.amountMinor, currency: from.currency, dopEquivalentMinor: from.currency === "DOP" ? null : input.dopEquivalentMinor ?? null, idempotencyKey: input.idempotencyKey ?? null })
+      .onConflictDoNothing({ target: [schema.transactions.userId, schema.transactions.idempotencyKey] })
+      .returning();
+    if (!outLeg) {
+      const existing = await transaction.query.transactions.findFirst({
+        where: and(eq(schema.transactions.userId, userId), eq(schema.transactions.idempotencyKey, input.idempotencyKey!)),
+      });
+      if (!existing?.transferGroupId || existing.kind !== "transfer_out") throw new Error("Could not confirm the transfer. Try again.");
+      const counterpart = await transaction.query.transactions.findFirst({
+        where: and(
+          eq(schema.transactions.userId, userId),
+          eq(schema.transactions.transferGroupId, existing.transferGroupId),
+          eq(schema.transactions.kind, "transfer_in"),
+        ),
+      });
+      if (!counterpart) throw new Error("This transfer is missing its receiving entry.");
+      return { outLeg: existing, inLeg: counterpart, created: false };
     }
-  }
-  const group = randomUUID();
-  const base = { userId, date: input.date, transferGroupId: group, note: input.note?.trim() || null, goalId: input.goalId ?? null };
-  const [outLeg] = await db
-    .insert(schema.transactions)
-    .values({ ...base, workspace: from.workspace, kind: "transfer_out", accountId: from.id, amountMinor: input.amountMinor, currency: from.currency, dopEquivalentMinor: from.currency === "DOP" ? null : input.dopEquivalentMinor ?? null, idempotencyKey: input.idempotencyKey ?? null })
-    .returning();
-  const [inLeg] = await db
-    .insert(schema.transactions)
-    .values({ ...base, workspace: to.workspace, kind: "transfer_in", accountId: to.id, amountMinor: toAmount, currency: to.currency, dopEquivalentMinor: to.currency === "DOP" ? null : input.dopEquivalentMinor ?? null })
-    .returning();
+    const [inLeg] = await transaction
+      .insert(schema.transactions)
+      .values({ ...base, workspace: to.workspace, kind: "transfer_in", accountId: to.id, amountMinor: toAmount, currency: to.currency, dopEquivalentMinor: to.currency === "DOP" ? null : input.dopEquivalentMinor ?? null })
+      .returning();
+    return { outLeg, inLeg, created: true };
+  });
+  if (!created) return { out: outLeg, in: inLeg };
   await logActivity({
     userId,
     workspace: from.workspace,

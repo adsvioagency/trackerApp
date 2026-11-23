@@ -25,18 +25,18 @@ export default async function AddPage({ params, searchParams }: { params: Promis
   const { user, today } = ctx;
   const businessOnly = ["payment", "client", "project", "owner-draw", "owner-contribution"].includes(kind);
   const workspace: "personal" | "business" = businessOnly ? "business" : sp.ws === "business" ? "business" : sp.ws === "personal" ? "personal" : ctx.view === "business" ? "business" : "personal";
-  const backHref = sp.back && sp.back.startsWith("/") ? sp.back : "/today";
+  const backHref = sp.back && sp.back.startsWith("/") && !sp.back.startsWith("//") && !sp.back.includes("\\") ? sp.back : "/today";
 
   if (["expense", "refund", "income", "owner-draw", "owner-contribution", "transfer"].includes(kind)) {
     const [accounts, allAccounts, tree, recents, merchants, clients, projects, goals] = await Promise.all([
       listAccounts(user.id, workspace),
-      listAccounts(user.id, "combined"),
+      kind === "transfer" ? listAccounts(user.id, "combined") : Promise.resolve([]),
       getCategoryTree(user.id, workspace),
       recentAccountIds(user.id, workspace),
       recentMerchants(user.id, workspace),
       workspace === "business" ? listClients(user.id) : Promise.resolve([]),
       workspace === "business" ? listProjects(user.id, { status: "open" }) : Promise.resolve([]),
-      listGoals(user.id, workspace),
+      kind === "transfer" ? listGoals(user.id, workspace) : Promise.resolve([]),
     ]);
     const data: MoneyFormData = {
       workspace,

@@ -55,8 +55,11 @@ export type Availability = {
  * counted once. Expected deposits live in the forecast only.
  */
 export async function availableAfterCommitments(userId: string, workspace: Workspace, today: string): Promise<Availability> {
-  const cash = await recordedSpendingCash(userId, workspace);
-  const next = await nextPayday(userId, workspace, today);
+  const [cash, next, goals] = await Promise.all([
+    recordedSpendingCash(userId, workspace),
+    nextPayday(userId, workspace, today),
+    listGoals(userId, workspace),
+  ]);
   const horizonEnd = next ? next.date : addDaysISO(today, 30);
   const horizonLabel = next ? `until your next payday (${next.date})` : "next 30 days";
   const unpaidBills = await unpaidBillsThrough(userId, workspace, horizonEnd);
@@ -67,7 +70,6 @@ export async function availableAfterCommitments(userId: string, workspace: Works
     else unpaidBillsOtherCurrency[o.bill.currency] = (unpaidBillsOtherCurrency[o.bill.currency] ?? 0) + o.amountMinor;
   }
   const spendingIds = new Set(cash.accounts.map((a) => a.id));
-  const goals = await listGoals(userId, workspace);
   const reservations = goals
     .filter((g) => g.accountId && spendingIds.has(g.accountId) && g.currency === "DOP" && g.savedMinor > 0)
     .map((goal) => ({ goal, amountMinor: goal.savedMinor }));

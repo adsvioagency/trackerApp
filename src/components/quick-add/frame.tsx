@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useEffect, useMemo, useState, type ReactNode } from "react";
-import { useRouter } from "next/navigation";
+import { useActionState, useMemo, useState, type ReactNode } from "react";
 import { ArrowLeft } from "lucide-react";
 import { ActionMessage, SubmitButton, type ActionState } from "@/components/forms";
 import { WorkspaceBadge } from "@/components/ui";
@@ -32,14 +31,9 @@ function newKey() {
  * never creates a duplicate record.
  */
 export function QuickForm({ action, title, workspace, submitLabel = "Save", backHref, doneHref, recordHref, children, hiddenFields, wide }: QuickFormProps) {
-  const router = useRouter();
   const [state, formAction] = useActionState<ActionState, FormData>(action, null);
-  const [resetKey, setResetKey] = useState(0);
-  const [idem, setIdem] = useState(() => newKey());
+  const [idem] = useState(newKey);
   const saved = !!state?.ok;
-  useEffect(() => {
-    if (saved) router.refresh();
-  }, [saved, router]);
   const hidden = useMemo(() => Object.entries(hiddenFields ?? {}).filter(([, v]) => v !== undefined), [hiddenFields]);
 
   return (
@@ -65,12 +59,7 @@ export function QuickForm({ action, title, workspace, submitLabel = "Save", back
               <button
                 type="button"
                 className="btn btn-secondary"
-                onClick={() => {
-                  setResetKey((k) => k + 1);
-                  setIdem(newKey());
-                  router.replace(window.location.pathname + window.location.search);
-                  window.location.reload();
-                }}
+                onClick={() => window.location.reload()}
               >
                 Add another
               </button>
@@ -85,12 +74,12 @@ export function QuickForm({ action, title, workspace, submitLabel = "Save", back
             </div>
           </div>
         ) : (
-          <form key={resetKey} action={formAction} className="space-y-4">
+          <form action={formAction} className="space-y-4">
             <input type="hidden" name="idempotencyKey" value={idem} />
             {hidden.map(([k, v]) => (
               <input key={k} type="hidden" name={k} value={v} />
             ))}
-            {children({ key: resetKey, idempotencyKey: idem })}
+            {children({ key: 0, idempotencyKey: idem })}
             <ActionMessage state={state} />
             <div className="sticky bottom-0 -mx-4 flex gap-2 border-t border-rule bg-surface px-4 pb-1 pt-3 md:static md:mx-0 md:border-0 md:bg-transparent md:p-0">
               <SubmitButton className="btn btn-primary flex-1 md:flex-none">{submitLabel}</SubmitButton>

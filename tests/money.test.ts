@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { makeUser, cat, account } from "./helpers";
-import { createTransaction, createTransfer, createDebtPayment, spendingByCategory, updateTransaction, deleteTransaction } from "@/lib/money/transactions";
+import { createTransaction, createTransfer, createDebtPayment, listTransactions, spendingByCategory, updateTransaction, deleteTransaction } from "@/lib/money/transactions";
 import { listAccounts } from "@/lib/money/accounts";
 import { setBudgetLine, getBudgetPlan, resolvePeriod, setRollover } from "@/lib/money/budget";
 import { createSchedule, paycheckWindowFor } from "@/lib/money/paydays";
@@ -152,4 +152,20 @@ describe("ledger rules", () => {
     expect(accs.find((a) => a.id === checking.id)!.balanceMinor).toBe(8_500_00);
     expect(accs.find((a) => a.id === savings.id)!.balanceMinor).toBe(1_500_00);
   });
+});
+
+
+it("records exactly one pair of transfer entries when the same request is retried concurrently", async () => {
+  const u = await makeUser();
+  const from = await account(u.id, { name: "From", opening: 10_000_00 });
+  const to = await account(u.id, { name: "To", opening: 0 });
+  const input = {
+    date: "2026-11-23", fromAccountId: from.id, toAccountId: to.id,
+    amountMinor: 125_50, idempotencyKey: "same-transfer",
+  };
+  const [first, retry] = await Promise.all([createTransfer(u.id, input), createTransfer(u.id, input)]);
+  expect(retry.out.id).toBe(first.out.id);
+  expect(retry.in.id).toBe(first.in.id);
+  const rows = await listTransactions(u.id, { workspace: "personal" });
+  expect(rows.map((row) => row.id).sort()).toEqual([first.in.id, first.out.id].sort());
 });

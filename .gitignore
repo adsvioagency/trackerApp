@@ -37,3 +37,6 @@ yarn-error.log*
 /playwright-report/
 /coverage/
 .playwright-mcp/
+
+# Local Netlify folder
+.netlify

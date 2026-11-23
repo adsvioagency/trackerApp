@@ -121,10 +121,15 @@ export async function getToday(ctx: Ctx): Promise<TodayData> {
     summaryParts.push(`${fmtMoney(availability.availableMinor)} available after commitments`);
   }
   if (view === "business" || view === "combined") {
-    const cash = await recordedSpendingCash(user.id, "business");
-    const receivables = await receivablesSummary(user.id, today);
-    const waiting = (await listProjects(user.id, { status: "open" })).filter((p) => p.waitingOnClient || p.status === "waiting_client").map((p) => ({ id: p.id, name: p.name, waitingSince: p.waitingSince }));
-    const income = await incomeTotal(user.id, "business", monthStart(monthKey(today)), monthEnd(monthKey(today)));
+    const [cash, receivables, projects, income] = await Promise.all([
+      recordedSpendingCash(user.id, "business"),
+      receivablesSummary(user.id, today),
+      listProjects(user.id, { status: "open" }),
+      incomeTotal(user.id, "business", monthStart(monthKey(today)), monthEnd(monthKey(today))),
+    ]);
+    const waiting = projects
+      .filter((p) => p.waitingOnClient || p.status === "waiting_client")
+      .map((p) => ({ id: p.id, name: p.name, waitingSince: p.waitingSince }));
     business = { cash, receivables, waiting, collectedMonthDop: income.dopMinor, collectedMissing: income.missingCount };
     const outstanding = Object.entries(receivables.outstandingByCurrency).map(([c, v]) => fmtMoney(v, c)).join(" + ");
     summaryParts.push(outstanding ? `${outstanding} outstanding from clients${receivables.overdueCount ? ` (${receivables.overdueCount} overdue)` : ""}` : "no open client invoices");

@@ -22,6 +22,9 @@ export const env = {
   get timezone() {
     return str("APP_TIMEZONE", "America/Santo_Domingo");
   },
+  get ownerAccessKeyHash() {
+    return str("OWNER_ACCESS_KEY_SHA256", "");
+  },
   get ownerEmails(): string[] {
     const base = str("OWNER_EMAILS", "")
       .split(",")

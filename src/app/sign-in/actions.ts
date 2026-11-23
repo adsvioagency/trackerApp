@@ -1,10 +1,20 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { requestSignInCode, signInDemoOwner, verifySignInCode } from "@/lib/auth";
+import { requestSignInCode, signInDemoOwner, signInWithAccessKey, verifySignInCode } from "@/lib/auth";
 import { env } from "@/lib/env";
 
 export type SignInState = { error?: string; sent?: boolean; devCode?: string; email?: string } | null;
+
+export async function accessKeyAction(_prev: SignInState, formData: FormData): Promise<SignInState> {
+  const email = String(formData.get("email") ?? "");
+  const key = String(formData.get("accessKey") ?? "").trim();
+  if (!(await signInWithAccessKey(email, key))) {
+    return { error: "Check your email and access key and try again.", email };
+  }
+  const next = String(formData.get("next") ?? "");
+  redirect(next.startsWith("/") && !next.startsWith("//") && !next.includes("\\") ? next : "/today");
+}
 
 export async function requestCodeAction(_prev: SignInState, formData: FormData): Promise<SignInState> {
   const email = String(formData.get("email") ?? "");

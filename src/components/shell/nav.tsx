@@ -20,7 +20,11 @@ export function MobileTabs({ view }: { view: WorkspaceView }) {
     <nav aria-label="Primary" className="fixed inset-x-0 bottom-0 z-30 border-t border-rule bg-surface/95 backdrop-blur md:hidden safe-bottom">
       <ul className="grid" style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}>
         {items.map((it) => {
-          const active = isActive(pathname, it) || (it.href === "/more" && ["/settings", "/notes", "/tasks", "/assistant", "/documents", "/activity", "/search", "/notifications"].some((p) => pathname.startsWith(p)) && !items.some((o) => o.href !== "/more" && isActive(pathname, o)));
+          const active = isActive(pathname, it)
+            || (it.href === "/money" && pathname.startsWith("/money/"))
+            || (it.href === "/more" && !items.some((item) =>
+              isActive(pathname, item) || (item.href === "/money" && pathname.startsWith("/money/")),
+            ));
           const Icon = it.icon;
           return (
             <li key={it.href}>
